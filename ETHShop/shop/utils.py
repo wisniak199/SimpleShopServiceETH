@@ -11,9 +11,14 @@ def ecrecover(h, v, r, s):
     return addr
 
 
-def transaction_hasher(value, session_id):
+def transaction_data_hasher(value, session_id):
     value_hash = Web3.soliditySha3(['uint256'], [value])
     hashed_transaction = Web3.toBytes(Web3.soliditySha3(['bytes'], [Web3.toBytes(value_hash) + decode_hex(session_id)]))
+    return hashed_transaction
+
+
+def transaction_hasher(value, session_id):
+    hashed_transaction = transaction_data_hasher(value, session_id)
     assert(len(hashed_transaction) == 32)
     msg = str.encode('\x19Ethereum Signed Message:\n32') + hashed_transaction
     return Web3.toBytes(Web3.soliditySha3(['bytes'], [msg]))

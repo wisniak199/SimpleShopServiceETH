@@ -19,6 +19,11 @@ SESSION_TIME = {
 CONTENT_PRICE = 1
 MAX_SESSION_RECEIPT_VALUE = 10
 
+ETHERUM_NETWORK_ADDRESS = 'http://localhost:8545'
+ETHERUM_CONTRACT_ADDRESS = '0x1fc8226e24885080bf6140cdba2014322cc175d7'
+ETHERUM_OWNER_ADDRESS = '0x1'
+COMPILED_CONTRACT_PATH = '/home/wisniak199/blockchain/final_assignment/SimpleShopServiceETH/truffle/build/contracts/StateChannel.json'
+
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.

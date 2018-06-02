@@ -1,5 +1,5 @@
-var TimeConstrainedCounter = artifacts.require("./TimeConstrainedCounter.sol");
+var StateChannel = artifacts.require("./StateChannel.sol");
 
 module.exports = function(deployer) {
-  deployer.deploy(TimeConstrainedCounter, 0, 32503676400);
+  deployer.deploy(StateChannel);
 };
