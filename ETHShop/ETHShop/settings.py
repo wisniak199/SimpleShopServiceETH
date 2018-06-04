@@ -13,15 +13,16 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 import os
 
 
+LOGIN_URL='/login/'
 SESSION_TIME = {
     'hours': 1
 }
 CONTENT_PRICE = 1
-MAX_SESSION_RECEIPT_VALUE = 10
+MAX_SESSION_RECEIPT_VALUE = 2
 
 ETHERUM_NETWORK_ADDRESS = 'http://localhost:8545'
-ETHERUM_CONTRACT_ADDRESS = '0x1fc8226e24885080bf6140cdba2014322cc175d7'
-ETHERUM_OWNER_ADDRESS = '0x1'
+ETHERUM_CONTRACT_ADDRESS = '0x7fb984e9bfb018245f056ea8739b89d6ae0b50dc'
+ETHERUM_OWNER_ADDRESS = '0x30ce3b4d2ca284c0e02e557a4d5fb81305f6c0d6'
 COMPILED_CONTRACT_PATH = '/home/wisniak199/blockchain/final_assignment/SimpleShopServiceETH/truffle/build/contracts/StateChannel.json'
 
 REST_FRAMEWORK = {
@@ -31,7 +32,6 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
     ]
 }
-
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -78,7 +78,9 @@ ROOT_URLCONF = 'ETHShop.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            BASE_DIR + '/templates/'
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -90,6 +92,11 @@ TEMPLATES = [
         },
     },
 ]
+
+
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, 'static'),
+)
 
 WSGI_APPLICATION = 'ETHShop.wsgi.application'
 

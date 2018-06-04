@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% block scripts %}
+<script src="{% static "js/jquery-3.3.1.min.js" %}" type="text/javascript"></script>
+<script src="{% static "js/web3.min.js" %}" type="text/javascript"></script>
+<script src="{% static "js/utils.js" %}" type="text/javascript"></script>
+<script src="{% static "js/shop.js" %}" type="text/javascript"></script>
+{% endblock %}
+
+
+{% block content %}
+<h2>Shop</h2>
+<form class="buy_content_form" method="post" action="{% url 'shop' %}">
+  {% csrf_token %}
+  <input type="hidden" name="receipt"/>
+  <input type="hidden" name="new_receipt_value" value="{{ new_receipt_value }}"/>
+  <input type="hidden" name="session_id" value="{{ session_id }}"/>
+  <input type="submit" value="buy content" {% if not can_buy %}disabled{% endif %}/>
+</form>
+<h3>{{ msg }}</h3>
+<form class="end_session_form" action="{% url 'end-session' %}">
+  {% csrf_token %}
+  <input type="submit" value="end session"/>
+</form>
+{% endblock content %}

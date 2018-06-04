@@ -2,15 +2,11 @@ from django.conf.urls import url, include
 from rest_framework import routers
 from shop import views
 
-router = routers.DefaultRouter()
-router.register(r'users', views.UserViewSet)
-router.register(r'groups', views.GroupViewSet)
 
-# Wire up our API using automatic URL routing.
-# Additionally, we include login URLs for the browsable API.
 urlpatterns = [
-    url(r'^', include(router.urls)),
-    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    url(r'^start_session/', views.start_session, name='start-session'),
-    url(r'^buy_content/', views.buy_content, name='buy-content'),
+    url(r'^$', views.welcome, name='welcome'),
+    url(r'^end_session/$', views.end_session, name='end-session'),
+    url(r'^shop/$', views.shop, name='shop'),
+    url(r'^start_session/$', views.start_session, name='start-session'),
+
 ]

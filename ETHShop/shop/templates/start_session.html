@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% block scripts %}
+<script src="{% static "js/jquery-3.3.1.min.js" %}" type="text/javascript"></script>
+<script src="{% static "js/web3.min.js" %}" type="text/javascript"></script>
+<script src="{% static "js/utils.js" %}" type="text/javascript"></script>
+<script src="{% static "js/start_session.js" %}" type="text/javascript"></script>
+{% endblock %}
+
+
+{% block content %}
+<h2>Start session</h2>
+<form class="start_session_form" method="post" action="{% url 'start-session' %}">
+  {% csrf_token %}
+  <input type="hidden" name="contract_address" value="{{ contract_address }}"/>
+  <input type="hidden" name="receipt"/>
+  <input type="hidden" name="session_id"/>
+  <input type="hidden" name="etherum_address"/>
+  <input type="hidden" name="transaction_hash"/>
+  <input type="submit" value="start session"/>
+</form>
+{% endblock content %}
