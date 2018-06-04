@@ -2,7 +2,7 @@ pragma solidity ^0.4.19;
 
 contract StateChannel {
     uint constant lockAmount = 2 ether;
-    uint constant sessionLength = 1 days;
+    uint sessionLength = 1 days;
 
     struct Session {
       uint start_ts;
