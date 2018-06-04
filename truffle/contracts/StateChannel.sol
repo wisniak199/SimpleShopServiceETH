@@ -6,12 +6,17 @@ contract StateChannel {
 
     struct Session {
       uint start_ts;
-      bytes32 session_id;
+      address user;
       bool set;
     }
 
+    event StartSession (
+      bytes32 indexed session_id,
+      address indexed client
+    );
+
     address owner;
-    mapping(address => Session) sessions;
+    mapping(bytes32 => Session) sessions;
 
 
     function StateChannel() public {
@@ -21,10 +26,11 @@ contract StateChannel {
     function startSession(bytes32 session_id) public payable {
       require(msg.sender != owner);
       require(msg.value == lockAmount);
-      require(sessions[msg.sender].start_ts == 0);
-      sessions[msg.sender].start_ts = now;
-      sessions[msg.sender].session_id = session_id;
-      sessions[msg.sender].set = true;
+      require(sessions[session_id].set == false);
+      sessions[session_id].start_ts = now;
+      sessions[session_id].user = msg.sender;
+      sessions[session_id].set = true;
+      StartSession(session_id, msg.sender);
     }
 
     function endSession(bytes32 h, uint8 v, bytes32 r, bytes32 s, uint value, bytes32 session_id) public {
@@ -35,8 +41,8 @@ contract StateChannel {
   		// get signer from signature
   		signer = ecrecover(h, v, r, s);
 
-      require(sessions[signer].set);
-      require(session_id == sessions[signer].session_id);
+      require(sessions[session_id].set);
+      require(sessions[session_id].user == signer);
 
   		proof = sha3("\x19Ethereum Signed Message:\n32", sha3(concat(sha3(value), session_id)));
       require(proof == h);
@@ -44,15 +50,16 @@ contract StateChannel {
       owner.transfer(value);
       signer.transfer(lockAmount - value);
 
-      delete sessions[signer];
+      delete sessions[session_id];
     }
 
-    function cancelSession() public {
-      Session storage session = sessions[msg.sender];
-      require(session.start_ts != 0);
+    function cancelSession(bytes32 session_id) public {
+      Session storage session = sessions[session_id];
+      require(session.set);
+      require(msg.sender == session.user);
       require(session.start_ts + sessionLength < now);
       msg.sender.transfer(lockAmount);
-      delete sessions[msg.sender];
+      delete sessions[session_id];
     }
 
     // probably inefficient
