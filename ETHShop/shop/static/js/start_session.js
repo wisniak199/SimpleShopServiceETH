@@ -11,8 +11,6 @@ function getSessionId() {
 
 async function lockFunds(contract, session_id, my_address){
   var tx = await contract.methods.startSession(session_id).send({from: my_address, value: web3.utils.toWei("2", "ether")});;
-  console.log(tx)
-  console.log(tx.transactionHash)
   return tx.transactionHash;
 }
 

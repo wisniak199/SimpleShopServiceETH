@@ -54,12 +54,11 @@ describe('TestStateChannel', async() => {
   it("simple transaction", async function () {
     let session_id = web3.utils.soliditySha3({t: 'bytes', v: web3.utils.fromAscii('sesja')});
     await contract.methods.startSession(session_id).send({from: client1, value: web3.utils.toWei("2", "ether")});
-    let transaction_confirmation = transaction_hasher(1, web3.utils.toAscii(session_id));
+    let transaction_confirmation = transaction_hasher(web3.utils.toWei("1", "ether"), web3.utils.toAscii(session_id));
     let transaction_signature = await sign_transaction(transaction_confirmation, client1);
     await contract.methods.endSession(
       transaction_signature.h, transaction_signature.v, transaction_signature.r,
-      transaction_signature.s, 1, session_id).send({from: owner});
-
+      transaction_signature.s, web3.utils.toWei("1", "ether"), session_id).send({from: owner});
   });
 
   it("user cannot cancel session whenever he wants", async function () {

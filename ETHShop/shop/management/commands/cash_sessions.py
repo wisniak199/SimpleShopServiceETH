@@ -33,5 +33,5 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         for session in Session.objects.filter(expires__lt=timezone.now()):
-            self.cash_receipt('0x' + session.receipt, session.receipt_value, '0x' + session.session_id, '0x'+session.etherum_address)
+            self.cash_receipt('0x' + session.receipt, w3.toWei(session.receipt_value, 'Finney'), '0x' + session.session_id, '0x'+session.etherum_address)
             session.delete()

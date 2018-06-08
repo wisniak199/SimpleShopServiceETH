@@ -10,6 +10,9 @@ from shop.utils import is_valid_receipt
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.http import HttpResponseBadRequest
+from web3 import Web3
+
+w3 = Web3()
 
 
 def welcome(request):
@@ -26,7 +29,6 @@ def start_session(request):
         etherum_address = request.POST['etherum_address']
         session_id = request.POST['session_id']
         transaction_hash = request.POST['transaction_hash']
-        print(transaction_hash)
         # input: session_id, adres etherum, podpis rachunku na 0, podtwierdzenie przelewu na kontrakt
         if not is_valid_receipt(receipt, etherum_address, session_id, 0):
             return HttpResponseBadRequest()
@@ -58,7 +60,7 @@ def shop(request):
     elif request.method == 'POST':
         new_receipt = request.POST['receipt']
 
-        if not is_valid_receipt(new_receipt, '0x' + session.etherum_address, '0x' + session.session_id, new_receipt_value):
+        if not is_valid_receipt(new_receipt, '0x' + session.etherum_address, '0x' + session.session_id, w3.toWei(new_receipt_value, 'Finney')):
             return HttpResponseBadRequest()
 
         session.receipt = new_receipt[2:]

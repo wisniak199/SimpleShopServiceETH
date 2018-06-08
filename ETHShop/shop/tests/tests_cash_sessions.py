@@ -39,12 +39,12 @@ class CashSessionTest(TestCase):
     def test_cash_session(self):
         etherum_address = client_address
         session_id = '0x3129042299270b945ba819991b82d07285772951e5e99060e044e1eb09cf5f64'
-        value = 1
+        value = 100
         event_filter = contract.events.StartSession.createFilter(fromBlock=0)
 
         tx = contract.functions.startSession(session_id).transact({'from': etherum_address, 'value': w3.toWei('2', 'ether')})
         w3.eth.waitForTransactionReceipt(tx)
-        msg = transaction_data_hasher(value, session_id)
+        msg = transaction_data_hasher(w3.toWei(value, 'Finney'), session_id)
         receipt = encode_hex(w3.eth.sign(etherum_address, msg))
 
         Session.objects.create(

@@ -11,7 +11,7 @@ const promisify = (inner) =>
 
 function transaction_hasher(value, session_id) {
   let session_id_ascii = web3.utils.toAscii(session_id)
-  let value_hash = web3.utils.toAscii(web3.utils.soliditySha3({t: 'uint256', v: value.toString()}));
+  let value_hash = web3.utils.toAscii(web3.utils.soliditySha3({t: 'uint256', v: web3.utils.toWei(value, 'Finney')}));
   let transaction_hash = web3.utils.soliditySha3({t: 'bytes', v: web3.utils.fromAscii(value_hash + session_id_ascii)});
   let transaction_hash_ascii  = web3.utils.toAscii(transaction_hash);
   const fixed_msg = `\x19Ethereum Signed Message:\n${transaction_hash_ascii.length}${transaction_hash_ascii}`
