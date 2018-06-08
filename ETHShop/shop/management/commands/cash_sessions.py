@@ -37,14 +37,15 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         for session in Session.objects.filter(expires__lt=timezone.now()):
-            client_address = '0x' + session.etherum_address
+            client_address = w3.toChecksumAddress('0x' + session.etherum_address)
+            owner_address = w3.toChecksumAddress(settings.ETHERUM_OWNER_ADDRESS)
             session_id = '0x' + session.session_id
-            owner_balance = w3.fromWei(w3.eth.getBalance(settings.ETHERUM_OWNER_ADDRESS), 'ether')
+            owner_balance = w3.fromWei(w3.eth.getBalance(owner_address), 'ether')
             client_balance = w3.fromWei(w3.eth.getBalance(client_address), 'ether')
             logging.info('Session id: %s Balance of owner before cashing: %s', session_id, str(owner_balance))
             logging.info('Session id: %s Balance of client before cashing: %s', session_id, str(client_balance))
             self.cash_receipt('0x' + session.receipt, w3.toWei(session.receipt_value, 'Finney'), '0x' + session.session_id, '0x'+session.etherum_address)
-            owner_balance = w3.fromWei(w3.eth.getBalance(settings.ETHERUM_OWNER_ADDRESS), 'ether')
+            owner_balance = w3.fromWei(w3.eth.getBalance(owner_address), 'ether')
             client_balance = w3.fromWei(w3.eth.getBalance(client_address), 'ether')
             logging.info('Session id: %s Balance of owner before cashing: %s', session_id, str(owner_balance))
             logging.info('Session id: %s Balance of client before cashing: %s', session_id, str(client_balance))
