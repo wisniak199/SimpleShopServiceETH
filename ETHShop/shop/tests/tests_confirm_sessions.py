@@ -5,9 +5,9 @@ from unittest.mock import patch
 from web3 import Web3, HTTPProvider
 from django.conf import settings
 import json
-from shop.management.commands.cash_sessions import Command as CashSessionsCommand
+from shop.management.commands.confirm_sessions import Command as ConfirmSessionsCommand
 from shop.models import Session
-from shop.utils import transaction_data_hasher, transaction_hasher, receipt_to_r_s_v, is_valid_receipt
+from shop.utils import transaction_data_hasher, transaction_hasher, receipt_to_r_s_v, is_valid_receipt, decode_contract_call
 from eth_utils import keccak, encode_hex, decode_hex, to_checksum_address, big_endian_to_int
 
 from ethereum.abi import (
@@ -15,6 +15,7 @@ from ethereum.abi import (
     normalize_name as normalize_abi_method_name,
     method_id as get_abi_method_id)
 from ethereum.utils import encode_int, zpad, decode_hex
+
 
 w3 = Web3(HTTPProvider(settings.ETHERUM_NETWORK_ADDRESS))
 owner_address = w3.eth.accounts[0]
@@ -32,16 +33,14 @@ contract = w3.eth.contract(
 )
 
 
-class CashSessionTest(TestCase):
-    @patch('shop.management.commands.cash_sessions.settings.ETHERUM_CONTRACT_ADDRESS', contract_address)
-    @patch('shop.management.commands.cash_sessions.settings.ETHERUM_OWNER_ADDRESS', owner_address)
-    @patch('shop.management.commands.cash_sessions.w3', w3)
-    def test_cash_session(self):
+class ConfirmSessionTest(TestCase):
+    @patch('shop.management.commands.confirm_sessions.settings.ETHERUM_CONTRACT_ADDRESS', contract_address)
+    @patch('shop.management.commands.confirm_sessions.settings.ETHERUM_OWNER_ADDRESS', owner_address)
+    @patch('shop.management.commands.confirm_sessions.w3', w3)
+    def test_confrim_session(self):
         etherum_address = client_address
         session_id = '0x3129042299270b945ba819991b82d07285772951e5e99060e044e1eb09cf5f64'
-        value = 1
-        event_filter = contract.events.StartSession.createFilter(fromBlock=0)
-
+        value = 0
         tx = contract.functions.startSession(session_id).transact({'from': etherum_address, 'value': w3.toWei('2', 'ether')})
         w3.eth.waitForTransactionReceipt(tx)
         msg = transaction_data_hasher(value, session_id)
@@ -52,7 +51,9 @@ class CashSessionTest(TestCase):
             etherum_address=etherum_address[2:],
             receipt=receipt[2:],
             receipt_value=value,
-            expires=timezone.now() - timezone.timedelta(hours=1)
+            expires=timezone.now() + timezone.timedelta(hours=12),
+            tx_hash=encode_hex(tx)[2:]
         )
-        CashSessionsCommand().handle()
-        self.assertEqual(Session.objects.all().count(), 0)
+        self.assertFalse(Session.objects.all().first().confirmed)
+        ConfirmSessionsCommand().confirm_sessions()
+        self.assertTrue(Session.objects.all().first().confirmed)

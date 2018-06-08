@@ -1,6 +1,5 @@
 from django.contrib.auth.models import User, Group
 from rest_framework import viewsets
-from shop.serializers import UserSerializer, GroupSerializer
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import permissions, status
@@ -34,7 +33,7 @@ def start_session(request):
         expires = timezone.now() + timezone.timedelta(**settings.SESSION_TIME)
         Session.objects.create(user=request.user, session_id=session_id[2:], etherum_address=etherum_address[2:],
                                receipt=receipt[2:], receipt_value=0,
-                               expires=expires)
+                               expires=expires, tx_hash=transaction_hash[2:])
         return redirect('shop')
 
     return render(request, 'start_session.html', {'contract_address': settings.ETHERUM_CONTRACT_ADDRESS})
@@ -47,11 +46,16 @@ def shop(request):
         return redirect('start-session')
     msg = ''
     can_buy = True
+    auto_refresh = False
     new_receipt_value = session.receipt_value + settings.CONTENT_PRICE
-    if new_receipt_value > settings.MAX_SESSION_RECEIPT_VALUE:
+    if not session.confirmed:
+        can_buy = False
+        msg = 'Please wait for your session to be confirmed by our system'
+        auto_refresh = True
+    elif new_receipt_value > settings.MAX_SESSION_RECEIPT_VALUE:
         can_buy = False
         msg = "You spend all the money, end current session and start a new one"
-    if can_buy and request.method == 'POST':
+    elif request.method == 'POST':
         new_receipt = request.POST['receipt']
 
         if not is_valid_receipt(new_receipt, '0x' + session.etherum_address, '0x' + session.session_id, new_receipt_value):
@@ -70,7 +74,8 @@ def shop(request):
         'session_id': '0x' + session.session_id,
         'new_receipt_value': new_receipt_value,
         'can_buy': can_buy,
-        'msg': msg
+        'msg': msg,
+        'auto_refresh': auto_refresh
     })
 
 

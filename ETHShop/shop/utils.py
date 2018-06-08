@@ -1,6 +1,10 @@
 from web3 import Web3
-from ethereum.utils import ecrecover_to_pub
+from ethereum.utils import ecrecover_to_pub, encode_int, zpad, decode_hex
 from eth_utils import keccak, encode_hex, decode_hex, to_checksum_address, big_endian_to_int
+from ethereum.abi import (
+    decode_abi,
+    normalize_name as normalize_abi_method_name,
+    method_id as get_abi_method_id)
 
 
 def ecrecover(h, v, r, s):
@@ -49,3 +53,21 @@ def is_valid_receipt(receipt, etherum_address, session_id, receipt_value):
     h = transaction_hasher(receipt_value, session_id)
     decoded_address = ecrecover(h, v ,r , s)
     return decoded_address == etherum_address
+
+
+def decode_contract_call(contract_abi, call_data):
+    call_data_bin = decode_hex(call_data)
+    method_signature = call_data_bin[:4]
+    for description in contract_abi:
+        if description.get('type') != 'function':
+            continue
+        method_name = normalize_abi_method_name(description['name'])
+        arg_types = [item['type'] for item in description['inputs']]
+        method_id = get_abi_method_id(method_name, arg_types)
+        if zpad(encode_int(method_id), 4) == method_signature:
+            try:
+                args = decode_abi(arg_types, call_data_bin[4:])
+            except AssertionError:
+                # Invalid args
+                continue
+            return method_name, args

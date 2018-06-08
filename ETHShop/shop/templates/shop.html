@@ -2,6 +2,9 @@
 
 {% load static %}
 {% block scripts %}
+{% if auto_refresh %}
+<meta http-equiv="refresh" content="5" />
+{% endif %}
 <script src="{% static "js/jquery-3.3.1.min.js" %}" type="text/javascript"></script>
 <script src="{% static "js/web3.min.js" %}" type="text/javascript"></script>
 <script src="{% static "js/utils.js" %}" type="text/javascript"></script>

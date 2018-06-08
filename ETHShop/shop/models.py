@@ -8,3 +8,5 @@ class Session(models.Model):
     receipt = models.CharField(max_length=130)
     receipt_value = models.IntegerField()
     expires = models.DateTimeField()
+    tx_hash = models.CharField(max_length=64)
+    confirmed = models.BooleanField(default=False)
