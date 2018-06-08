@@ -6,6 +6,9 @@ from shop.utils import receipt_to_r_s_v, transaction_hasher
 import json
 from web3 import Web3, HTTPProvider
 from eth_utils import int_to_big_endian, decode_hex
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 
 w3 = Web3(HTTPProvider(settings.ETHERUM_NETWORK_ADDRESS))
@@ -28,10 +31,21 @@ class Command(BaseCommand):
         r = int_to_big_endian(r)
         s = int_to_big_endian(s)
         session_id = decode_hex(session_id)
-        self.contract.functions.endSession(h, v, r, s, receipt_value, session_id).call({'from': w3.toChecksumAddress(settings.ETHERUM_OWNER_ADDRESS)})
+        tx = self.contract.functions.endSession(h, v, r, s, receipt_value, session_id).transact({'from': w3.toChecksumAddress(settings.ETHERUM_OWNER_ADDRESS)})
+        w3.eth.waitForTransactionReceipt(tx)
 
 
     def handle(self, *args, **kwargs):
         for session in Session.objects.filter(expires__lt=timezone.now()):
+            client_address = '0x' + session.etherum_address
+            session_id = '0x' + session.session_id
+            owner_balance = w3.fromWei(w3.eth.getBalance(settings.ETHERUM_OWNER_ADDRESS), 'ether')
+            client_balance = w3.fromWei(w3.eth.getBalance(client_address), 'ether')
+            logging.info('Session id: %s Balance of owner before cashing: %s', session_id, str(owner_balance))
+            logging.info('Session id: %s Balance of client before cashing: %s', session_id, str(client_balance))
             self.cash_receipt('0x' + session.receipt, w3.toWei(session.receipt_value, 'Finney'), '0x' + session.session_id, '0x'+session.etherum_address)
+            owner_balance = w3.fromWei(w3.eth.getBalance(settings.ETHERUM_OWNER_ADDRESS), 'ether')
+            client_balance = w3.fromWei(w3.eth.getBalance(client_address), 'ether')
+            logging.info('Session id: %s Balance of owner before cashing: %s', session_id, str(owner_balance))
+            logging.info('Session id: %s Balance of client before cashing: %s', session_id, str(client_balance))
             session.delete()

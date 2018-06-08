@@ -52,11 +52,12 @@ class Command(BaseCommand):
     def confirm_sessions(self):
         for session in Session.objects.filter(confirmed=False, expires__gt=timezone.now()):
             tx = w3.eth.getTransaction(decode_hex('0x' + session.tx_hash))
-            if self.valid_tx(session, tx):
-                session.confirmed = True;
-            else:
-                session.expires = timezone.now() - timezone.timedelta(hours=1)
-            session.save()
+            if tx:
+                if self.valid_tx(session, tx):
+                    session.confirmed = True;
+                else:
+                    session.expires = timezone.now() - timezone.timedelta(hours=1)
+                session.save()
 
 
     def handle(self, *args, **kwargs):

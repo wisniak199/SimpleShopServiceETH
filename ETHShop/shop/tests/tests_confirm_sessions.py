@@ -37,9 +37,9 @@ class ConfirmSessionTest(TestCase):
     @patch('shop.management.commands.confirm_sessions.settings.ETHERUM_CONTRACT_ADDRESS', contract_address)
     @patch('shop.management.commands.confirm_sessions.settings.ETHERUM_OWNER_ADDRESS', owner_address)
     @patch('shop.management.commands.confirm_sessions.w3', w3)
-    def test_confrim_session(self):
+    def test_confirm_session_positive(self):
         etherum_address = client_address
-        session_id = '0x3129042299270b945ba819991b82d07285772951e5e99060e044e1eb09cf5f64'
+        session_id = '0x3129042299270b945ba819991b82d07285772951e5e99060e044e1eb09cf5f34'
         value = 0
         tx = contract.functions.startSession(session_id).transact({'from': etherum_address, 'value': w3.toWei('2', 'ether')})
         w3.eth.waitForTransactionReceipt(tx)
@@ -57,3 +57,27 @@ class ConfirmSessionTest(TestCase):
         self.assertFalse(Session.objects.all().first().confirmed)
         ConfirmSessionsCommand().confirm_sessions()
         self.assertTrue(Session.objects.all().first().confirmed)
+
+    @patch('shop.management.commands.confirm_sessions.settings.ETHERUM_CONTRACT_ADDRESS', contract_address)
+    @patch('shop.management.commands.confirm_sessions.settings.ETHERUM_OWNER_ADDRESS', owner_address)
+    @patch('shop.management.commands.confirm_sessions.w3', w3)
+    def test_confirm_session_negative(self):
+        etherum_address = client_address
+        session_id = '0x3129042299270b945ba819991b82d07285772951e5e99060e044e1eb09cf5f64'
+        value = 0
+        tx = contract.functions.startSession(session_id).transact({'from': etherum_address, 'value': w3.toWei('2', 'ether')})
+        w3.eth.waitForTransactionReceipt(tx)
+        msg = transaction_data_hasher(value, session_id)
+        receipt = encode_hex(w3.eth.sign(etherum_address, msg))
+
+        Session.objects.create(
+            session_id=session_id[2:],
+            etherum_address=etherum_address[2:],
+            receipt=receipt[2:],
+            receipt_value=value,
+            expires=timezone.now() + timezone.timedelta(hours=12),
+            tx_hash=encode_hex(tx)[2:-1] + 'b'
+        )
+        self.assertFalse(Session.objects.all().first().confirmed)
+        ConfirmSessionsCommand().confirm_sessions()
+        self.assertFalse(Session.objects.all().first().confirmed)
